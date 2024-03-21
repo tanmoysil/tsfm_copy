@@ -3,7 +3,7 @@
 """
 Created on Wed Mar 20 15:17:27 2024
 
-@author: visualdbs
+@author: tanmoysil
 """
 
 import numpy as np
@@ -17,30 +17,26 @@ class ScaleTS(StandardScaler):
         self.data = data
         self.num_channels = data.shape[1]
         self.num_subjects = data.shape[2]
+        self.scaled_data = np.zeros_like(data)
     
         
-    def get_single_subject(self, index):
-        single_subject = self.data[:,:,index]
+    def get_subject(self, index):
+        subject = self.data[:,:,index]
+        return subject
+        
+        
+    def get_channel(self, dat, index):
+        channel = dat[:,index]
+        return channel
+
         
     def scale(self):
-        for i in self.num_subjects:
-            for j in self.num_channels:
-                scaler = StandardScaler().fit(get_single_subject(i))
-                
-        
-        
-        
-        
-num_subjects = 
-for i in X_train.shape[2]:
+        for i in range(self.num_subjects):
+            for j in range(self.num_channels):
+                subject = self.get_subject(i)
+                channel = self.get_channel(subject, j)
+                scaler = StandardScaler(with_mean=True, with_std=True)
+                channel =  scaler.fit_transform(channel.reshape(-1,1))
+                self.scaled_data[:,j,i] = channel.reshape(-1,1).flatten()
+        return self.scaled_data
     
-
-    scaler(i) = StandardScaler().fit(X_train[:,:,i])
-    scaler(i).mean_
-    scaler(i).scale_
-
-    X_scaled = scaler.transform(X_train[:,:,i])
-
-
-# class Preprocessor(StandardScaler):
-        

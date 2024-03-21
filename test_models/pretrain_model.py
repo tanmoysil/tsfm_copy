@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar 19 15:17:27 2024
+
+@author: tanmoysil
+"""
+
 #%%
 import os
 import numpy as np
@@ -25,8 +33,12 @@ from transformers import (
 warnings.filterwarnings("ignore", module="torch")
 #%%
 
-dataset_path = '/home/visualdbs/User_Folders/Tanmoy/transformers/data_1_3000.npy'
+#dataset_path = '/home/visualdbs/User_Folders/Tanmoy/transformers/data_1_3000.npy'
+dataset_path = '/Users/tanmoysil/Library/Mobile Documents/com~apple~CloudDocs/DAT/transformers/data_3000.npz'
 data = np.load(dataset_path)
+
+X = data['arr_0']
+y = data['arr_1']
 
 context_length = 512
 forecast_horizon = 96
@@ -34,46 +46,18 @@ patch_length = 8
 num_workers = 32  # Reduce this if you have low number of CPU cores
 batch_size = 8  # Adjust according to GPU memory
 
-# get split
-num_train = int(len(data) * 0.7)
-num_test = int(len(data) * 0.2)
-num_valid = len(data) - num_train - num_test
-border1s = [
-    0,
-    num_train - context_length,
-    len(data) - num_test - context_length,
-]
-border2s = [num_train, num_train + num_valid, len(data)]
+#%% get split
+#X = np.reshape(X, (X.shape[2], X.shape[1], X.shape[0]))
+   
+X_train, X_, y_train, y_ = train_test_split(X, y, test_size=0.33, shuffle=True, stratify=y)
+X_valid, X_test, y_valid, y_test = train_test_split(X_, y_, test_size=0.5, shuffle=True)
 
-train_start_index = border1s[0]  # None indicates beginning of dataset
-train_end_index = border2s[0]
+X_train = np.transpose(X_train, (1,2,0))
+X_valid = np.transpose(X_valid, (1,2,0))
+X_test = np.transpose(X_test, (1,2,0))
 
-# we shift the start of the evaluation period back by context length so that
-# the first evaluation timestamp is immediately following the training data
-valid_start_index = border1s[1]
-valid_end_index = border2s[1]
 
-test_start_index = border1s[2]
-test_end_index = border2s[2]
-
-train_data = select_by_index(
-    data,
-    id_columns=id_columns,
-    start_index=train_start_index,
-    end_index=train_end_index,
-)
-valid_data = select_by_index(
-    data,
-    id_columns=id_columns,
-    start_index=valid_start_index,
-    end_index=valid_end_index,
-)
-test_data = select_by_index(
-    data,
-    id_columns=id_columns,
-    start_index=test_start_index,
-    end_index=test_end_index,
-)
+# %% get split
 
 tsp = TimeSeriesPreprocessor(
     timestamp_column=timestamp_column,

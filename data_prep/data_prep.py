@@ -1,4 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar 19 15:17:27 2024
 
+@author: tanmoysil
+"""
 
 import os
 import numpy as np
@@ -12,24 +18,35 @@ import torch
 
 #%%
 # Set the path to your folder containing .dat files
-path_to_data = '/home/visualdbs/User_Folders/Tanmoy/transformers/ETPD_DATA_transformers/'
-folder_path = Path('ETPD_DATA_transformers/')
-#print(folder_path.resolve())
+folderpath_to_data = []
+folderpath_to_data.append("/Users/tanmoysil/Library/Mobile Documents/com~apple~CloudDocs/DAT/transformers/ETPD_DATA_transformers/Essential_Tremor") 
+folderpath_to_data.append("/Users/tanmoysil/Library/Mobile Documents/com~apple~CloudDocs/DAT/transformers/ETPD_DATA_transformers/Parkinsons_Tremor")
 
-# Get a list of all .dat files in the folder
-dat_files = [file for file in os.listdir(folder_path) if file.endswith('.dat')]
+
+
+dat_files = [file for file in os.listdir(folderpath_to_data[0]) if file.endswith('.dat')]
+len_1 = len(dat_files)
+dat_files.extend([file for file in os.listdir(folderpath_to_data[1]) if file.endswith('.dat')])
+len_2 = len(dat_files) - len_1
+
 
 # Initialize an empty list to store the second variable from each file
 second_variable_list = []
 
-# Loop through each .dat file
-for file_name in dat_files:
-    file_path = os.path.join(folder_path, file_name)
+# Loop through each .dat file-
+y = []
+for length_, file_name in zip(range(len(dat_files)), dat_files):
+    if length_+1<=len_1:
+        file_path = os.path.join(folderpath_to_data[0], file_name)
+        y.append(0)
+    elif length_+1>len_1:
+        y.append(1)
+        file_path = os.path.join(folderpath_to_data[1], file_name)
 
-    # Load data from the .dat file using numpy.loadtxt
+    # Load data from the .dat file
     data_1 = np.loadtxt(file_path,delimiter=';', usecols = (1,2,3,4,5,6))
 
-    # Extract the second variable (assuming 0-based indexing)
+    # Extract the second variable 
     resample_points = 3000
     data_resample = signal.resample(data_1, resample_points, axis=0)
     second_variable = data_resample
@@ -41,11 +58,12 @@ for file_name in dat_files:
     second_variable_list.append(second_variable)
 
 # Create a new NumPy array from the list of second variables
-result_array = np.reshape(np.array(second_variable_list), (resample_points, data_1.shape[1], len(dat_files)))
+result_array = np.array(second_variable_list)
 
-filename_to_save = 'data_1_3000'
+filepath_to_save = '/Users/tanmoysil/Library/Mobile Documents/com~apple~CloudDocs/DAT/transformers/'
+filename_to_save = 'data_3000'
 
-np.save(filename_to_save, result_array)
+np.savez(os.path.join(filepath_to_save, filename_to_save), result_array, y)
 
 
 #%%
