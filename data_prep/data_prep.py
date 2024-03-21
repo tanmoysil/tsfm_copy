@@ -12,6 +12,7 @@ import torch
 
 #%%
 # Set the path to your folder containing .dat files
+path_to_data = '/home/visualdbs/User_Folders/Tanmoy/transformers/ETPD_DATA_transformers/'
 folder_path = Path('ETPD_DATA_transformers/')
 #print(folder_path.resolve())
 

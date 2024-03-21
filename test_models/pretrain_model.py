@@ -24,8 +24,9 @@ from transformers import (
 
 warnings.filterwarnings("ignore", module="torch")
 #%%
+
 dataset_path = '/home/visualdbs/User_Folders/Tanmoy/transformers/data_1_3000.npy'
-dataset = np.load(dataset_path)
+data = np.load(dataset_path)
 
 context_length = 512
 forecast_horizon = 96
@@ -33,21 +34,46 @@ patch_length = 8
 num_workers = 32  # Reduce this if you have low number of CPU cores
 batch_size = 8  # Adjust according to GPU memory
 
+# get split
+num_train = int(len(data) * 0.7)
+num_test = int(len(data) * 0.2)
+num_valid = len(data) - num_train - num_test
+border1s = [
+    0,
+    num_train - context_length,
+    len(data) - num_test - context_length,
+]
+border2s = [num_train, num_train + num_valid, len(data)]
 
-#%%
-#reshape data to get split
-reshaped_dataset = dataset.reshape(dataset.shape[2], dataset.shape[1], dataset.shape[0])
+train_start_index = border1s[0]  # None indicates beginning of dataset
+train_end_index = border2s[0]
 
-#get split
-X_train, X_= train_test_split(reshaped_dataset, test_size=0.4, random_state=42)
-X_valid, X_test = train_test_split(X_, test_size=0.5, random_state=42)
+# we shift the start of the evaluation period back by context length so that
+# the first evaluation timestamp is immediately following the training data
+valid_start_index = border1s[1]
+valid_end_index = border2s[1]
 
+test_start_index = border1s[2]
+test_end_index = border2s[2]
 
-X_train = X_train.reshape(X_train.shape[2], X_train.shape[1], X_train.shape[0])
-X_valid = X_valid.reshape(X_valid.shape[2], X_valid.shape[1], X_valid.shape[0])
-X_test = X_test.reshape(X_test.shape[2], X_test.shape[1], X_test.shape[0])
-
-
+train_data = select_by_index(
+    data,
+    id_columns=id_columns,
+    start_index=train_start_index,
+    end_index=train_end_index,
+)
+valid_data = select_by_index(
+    data,
+    id_columns=id_columns,
+    start_index=valid_start_index,
+    end_index=valid_end_index,
+)
+test_data = select_by_index(
+    data,
+    id_columns=id_columns,
+    start_index=test_start_index,
+    end_index=test_end_index,
+)
 
 tsp = TimeSeriesPreprocessor(
     timestamp_column=timestamp_column,
@@ -57,7 +83,6 @@ tsp = TimeSeriesPreprocessor(
     scaling=True,
 )
 tsp = tsp.train(train_data)
-
 
 train_dataset = ForecastDFDataset(
     tsp.preprocess(train_data),
