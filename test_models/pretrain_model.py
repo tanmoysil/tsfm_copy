@@ -31,8 +31,8 @@ from transformers import (
 )
 
 warnings.filterwarnings("ignore", module="torch")
-#%%
 
+#%%
 #dataset_path = '/home/visualdbs/User_Folders/Tanmoy/transformers/data_1_3000.npy'
 dataset_path = '/Users/tanmoysil/Library/Mobile Documents/com~apple~CloudDocs/DAT/transformers/data_3000.npz'
 data = np.load(dataset_path)
@@ -46,7 +46,7 @@ patch_length = 8
 num_workers = 32  # Reduce this if you have low number of CPU cores
 batch_size = 8  # Adjust according to GPU memory
 
-#%% get split
+# get split
 #X = np.reshape(X, (X.shape[2], X.shape[1], X.shape[0]))
    
 X_train, X_, y_train, y_ = train_test_split(X, y, test_size=0.33, shuffle=True, stratify=y)
@@ -56,6 +56,11 @@ X_train = np.transpose(X_train, (1,2,0))
 X_valid = np.transpose(X_valid, (1,2,0))
 X_test = np.transpose(X_test, (1,2,0))
 
+
+
+a = ScaleTS()
+a.train(X_train)
+a.preprocess(X_train)
 
 # %% get split
 
